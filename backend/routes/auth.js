@@ -3,6 +3,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const dotenv = require("dotenv");
+const authMiddleware = require('../middleware/authMiddleware');
 
 dotenv.config();
 
@@ -52,4 +53,16 @@ router.post("/login", async (req, res) => {
   }
 });
 
+router.get('/user', authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).select('-password');
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json(user); // Return user details
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
 module.exports = router;
